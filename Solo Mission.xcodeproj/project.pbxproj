@@ -17,6 +17,7 @@
 		3DA195731FEAE24700DBA362 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DA195711FEAE24700DBA362 /* LaunchScreen.storyboard */; };
 		3DA1957E1FEAE24700DBA362 /* Solo_MissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA1957D1FEAE24700DBA362 /* Solo_MissionTests.swift */; };
 		3DA195891FEAE24700DBA362 /* Solo_MissionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA195881FEAE24700DBA362 /* Solo_MissionUITests.swift */; };
+		3DA195971FF8CF7900DBA362 /* theBoldFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3DA195961FF8CF7900DBA362 /* theBoldFont.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,7 @@
 		3DA195841FEAE24700DBA362 /* Solo MissionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Solo MissionUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DA195881FEAE24700DBA362 /* Solo_MissionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solo_MissionUITests.swift; sourceTree = "<group>"; };
 		3DA1958A1FEAE24700DBA362 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3DA195961FF8CF7900DBA362 /* theBoldFont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = theBoldFont.ttf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				3DA195621FEAE24700DBA362 /* AppDelegate.swift */,
+				3DA195961FF8CF7900DBA362 /* theBoldFont.ttf */,
 				3DA195641FEAE24700DBA362 /* GameScene.sks */,
 				3DA195661FEAE24700DBA362 /* Actions.sks */,
 				3DA195681FEAE24700DBA362 /* GameScene.swift */,
@@ -241,6 +244,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DA195971FF8CF7900DBA362 /* theBoldFont.ttf in Resources */,
 				3DA1956E1FEAE24700DBA362 /* Main.storyboard in Resources */,
 				3DA195651FEAE24700DBA362 /* GameScene.sks in Resources */,
 				3DA195701FEAE24700DBA362 /* Assets.xcassets in Resources */,
