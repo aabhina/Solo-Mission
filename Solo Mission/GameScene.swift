@@ -8,10 +8,11 @@
 
 import SpriteKit
 import GameplayKit
+var gameScore = 0
+
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
-    var gameScore = 0
     let scoreLabel = SKLabelNode(fontNamed: "The Bold Font")
     
     var levelNumber = 0
@@ -22,6 +23,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let player = SKSpriteNode(imageNamed: "playerShip")
     let bulletSound = SKAction.playSoundFileNamed("", waitForCompletion: false)
     let explosionSound = SKAction.playSoundFileNamed("", waitForCompletion: false)
+    
+    let tapToStartLabel = SKLabelNode(fontNamed: "The Bold Font")
+    
+    enum gameState {
+        case preGame
+        case inGame
+        case afterGame
+    }
+    
+    var currentGameState = gameState.preGame
+    
     
     struct PhysicsCategories {
         static let None: UInt32 = 0
@@ -57,6 +69,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     
     override func didMove(to view: SKView) {
+        gameScore = 0
+
         self.physicsWorld.contactDelegate = self
         
         let background = SKSpriteNode(imageNamed: "background")
@@ -66,7 +80,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(background)
         
         player.setScale(1)
-        player.position = CGPoint(x: self.size.width/2, y: self.size.height*0.2)
+        player.position = CGPoint(x: self.size.width/2, y: 0 - player.size.height)
         player.zPosition = 2
         player.physicsBody = SKPhysicsBody(rectangleOf: player.size)
         player.physicsBody!.affectedByGravity = false
@@ -79,7 +93,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.fontSize = 70
         scoreLabel.fontColor = SKColor.white
         scoreLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
-        scoreLabel.position = CGPoint(x: self.size.width*0.15, y: self.size.height*0.9)
+        scoreLabel.position = CGPoint(x: self.size.width*0.15, y: self.size.height +  scoreLabel.frame.size.height)
         scoreLabel.zPosition = 100
         self.addChild(scoreLabel)
         
@@ -87,11 +101,43 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         livesLabel.fontSize = 70
         livesLabel.fontColor = SKColor.white
         livesLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.right
-        livesLabel.position = CGPoint(x: self.size.width*0.85, y: self.size.height*0.9)
+        livesLabel.position = CGPoint(x: self.size.width*0.85, y: self.size.height + livesLabel.frame.size.height)
         livesLabel.zPosition = 100
         self.addChild(livesLabel)
         
-        startNewLevel()
+        let moveOnToScreenAction = SKAction.moveTo(y: self.size.height*0.75, duration: 0.3)
+        scoreLabel.run(moveOnToScreenAction)
+        livesLabel.run(moveOnToScreenAction)
+        
+        
+        tapToStartLabel.text = "Tap To Begin"
+        tapToStartLabel.fontSize = 100
+        tapToStartLabel.fontColor = SKColor.white
+        tapToStartLabel.zPosition = 1
+        tapToStartLabel.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
+        tapToStartLabel.alpha = 0
+        self.addChild(tapToStartLabel)
+        
+        let fadeInAction = SKAction.fadeIn(withDuration: 0.3)
+        tapToStartLabel.run(fadeInAction)
+        
+        //startNewLevel()
+    }
+    
+    func startGame() {
+        currentGameState = gameState.inGame
+        
+        let fadeOutAction = SKAction.fadeOut(withDuration: 0.5)
+        let deleteAction = SKAction.removeFromParent()
+        let deleteSequence = SKAction.sequence([fadeOutAction, deleteAction])
+        tapToStartLabel.run(deleteSequence)
+        
+        let moveShipOnToScreenAction = SKAction.moveTo(y: self.size.height*0.2, duration: 0.5)
+        let startLevelAction = SKAction.run(startNewLevel)
+        let startGameSequence = SKAction.sequence([moveShipOnToScreenAction, startLevelAction])
+        player.run(startGameSequence)
+        
+        
     }
     
     func loseALife() {
@@ -102,6 +148,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let scaleDown = SKAction.scale(to: 1, duration: 0.2)
         let scaleSequence = SKAction.sequence([scaleUp, scaleDown])
         livesLabel.run(scaleSequence)
+        
+        if(livesNumber == 0) {
+            runGameOver()
+        }
     }
     
     func addScore() {
@@ -111,6 +161,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if(gameScore == 10 || gameScore == 25 || gameScore == 50) {
             startNewLevel()
         }
+    }
+    
+    func runGameOver() {
+        currentGameState = gameState.afterGame
+        
+        self.removeAllActions()
+        
+        //Remove all the bullets references in the current game scene
+        self.enumerateChildNodes(withName: "Bullet") {
+            bullet, stop in
+            bullet.removeAllActions()
+        }
+        
+        //Remove all the enemy references in the current game scene
+        self.enumerateChildNodes(withName: "Enemy") {
+            enemy, stop in
+            enemy.removeAllActions()
+        }
+        
+        //We also need to freeze our ability to fire more bullets
+        //Also need to freeze our ability to hit enemy ships with the bullets
+        let changeSceneAction = SKAction.run(changeScene)
+        let waitToChangeScene = SKAction.wait(forDuration: 1)
+        let changeSceneSequence = SKAction.sequence([waitToChangeScene,changeSceneAction])
+        self.run(changeSceneSequence)        
+        
+    }
+    
+    func changeScene() {
+        let sceneToMoveTo = GameOverScene(size: self.size)
+        sceneToMoveTo.scaleMode = self.scaleMode
+        
+        let myTransition = SKTransition.fade(withDuration: 0.5)
+        self.view!.presentScene(sceneToMoveTo, transition: myTransition)
+        
+        
     }
     
     
@@ -139,6 +225,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             body1.node?.removeFromParent()
             body2.node?.removeFromParent()
+            
+            runGameOver()
         }
         
         if(body1.categoryBitMask == PhysicsCategories.Bullet && body2.categoryBitMask == PhysicsCategories.Enemy &&
@@ -199,6 +287,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func fireBullet() {
         let bullet = SKSpriteNode(imageNamed: "bullet")
+        bullet.name = "Bullet"
         bullet.setScale(1)
         bullet.position = player.position
         bullet.zPosition = 1
@@ -223,6 +312,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let endPoint = CGPoint(x: randomXEnd, y: -self.size.height*0.2)
         
         let enemy = SKSpriteNode(imageNamed: "enemyShip")
+        enemy.name = "Enemy"
         enemy.setScale(1)
         enemy.position = startPoint
         enemy.zPosition = 2
@@ -237,7 +327,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let deleteEnemy = SKAction.removeFromParent()
         let loseALifeAction = SKAction.run(loseALife)
         let enemySequence = SKAction.sequence([moveEnemy, deleteEnemy, loseALifeAction])
-        enemy.run(enemySequence)
+        
+        if(currentGameState == gameState.inGame) {
+            enemy.run(enemySequence)
+        }
+        
         
         let dx = endPoint.x - startPoint.x
         let dy = endPoint.y - startPoint.y
@@ -248,7 +342,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        fireBullet()
+        if(currentGameState ==  gameState.preGame) {
+            startGame()
+        }
+        
+        //Fire bullets only when we are IN the game, depending on the current game state
+        else if(currentGameState == gameState.inGame) {
+            fireBullet()
+        }
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -257,7 +358,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let previousPointOfTouch = touch.previousLocation(in: self)
             
             let amountDragged = pointOfTouch.x - previousPointOfTouch.x
-            player.position.x += amountDragged
+            
+            //Move player ship only when we are IN the game, depending on the current game status
+            if(currentGameState == gameState.inGame) {
+                player.position.x += amountDragged
+            }
+            
             
             if(player.position.x > gameArea.maxX - player.size.width/2) {
                 player.position.x = gameArea.maxX - player.size.width/2
