@@ -73,11 +73,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         self.physicsWorld.contactDelegate = self
         
-        let background = SKSpriteNode(imageNamed: "background")
-        background.size = self.size
-        background.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
-        background.zPosition = 0
-        self.addChild(background)
+        for i in 0...1 {
+            let background = SKSpriteNode(imageNamed: "background")
+            background.size = self.size
+            background.anchorPoint = CGPoint(x: 0.5, y: 0)
+            background.position = CGPoint(x: self.size.width/2, y: self.size.height*CGFloat(i))
+            background.zPosition = 0
+            background.name = "Background"
+            
+            self.addChild(background)
+        }
         
         player.setScale(1)
         player.position = CGPoint(x: self.size.width/2, y: 0 - player.size.height)
@@ -122,6 +127,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         tapToStartLabel.run(fadeInAction)
         
         //startNewLevel()
+    }
+    
+    
+    var lastUpdateTime: TimeInterval = 0
+    var deltaFrameTime: TimeInterval = 0
+    var amountToMovePerSecond: CGFloat = 600.0
+    
+    override func update(_ currentTime: TimeInterval) {
+        if(lastUpdateTime == 0) {
+            lastUpdateTime = currentTime
+        }
+        else {
+            deltaFrameTime = currentTime - lastUpdateTime
+            lastUpdateTime = currentTime
+        }
+        
+        let amountToMoveBackground = amountToMovePerSecond * CGFloat(deltaFrameTime)
+        self.enumerateChildNodes(withName: "Background") {
+            background, stop in
+            
+            if(self.currentGameState == gameState.inGame) {
+                background.position.y -= amountToMoveBackground
+            }
+            
+            if(background.position.y < -self.size.height) {
+                background.position.y += self.size.height*2
+            }
+        }
+        
+        
     }
     
     func startGame() {
